@@ -2,6 +2,9 @@ package org.kie.akrivis.scheduler;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.akrivis.dbmodel.Job;
+import org.akrivis.dbmodel.JobRepository;
+import org.akrivis.dbmodel.RawData;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -17,6 +17,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import org.akrivis.dbmodel.Job;
+import org.akrivis.dbmodel.JobRepository;
+import org.akrivis.dbmodel.JobStatus;
+import org.akrivis.dbmodel.RawData;
 import org.kie.akrivis.utility.BackstageResponse;
 
 import java.time.Instant;

@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres
+    container_name: quarkus_test
+    restart: always
+    ports:
+      - "5432:5432"
+    user: postgres
+    environment:
+      POSTGRES_DB: quarkus_test
+      POSTGRES_USER: sarah
+      PGUSER: sarah
+      POSTGRES_PASSWORD: connor
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8085:8080
+
+volumes:
+  pgdata:

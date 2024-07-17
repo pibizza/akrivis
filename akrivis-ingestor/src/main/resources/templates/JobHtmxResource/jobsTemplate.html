@@ -12,6 +12,7 @@
                     <li>{j.cron}</li>
                   </ul>
                     <button hx-post="/jobh/{j.id}/test" hx-target="#detailRawData">Test</button>
+                    <button hx-post="/jobh/{j.id}/activate" hx-target="#jobTable">{j.status}</button>
                     <button hx-delete="/jobh/{j.id}" hx-target="#jobTable">Delete</button>
 
                 </div>

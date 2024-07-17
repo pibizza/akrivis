@@ -3,6 +3,9 @@ package org.kie.akrivis.scheduler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.akrivis.dbmodel.Job;
+import org.akrivis.dbmodel.JobRepository;
+import org.akrivis.dbmodel.RawData;
 
 import java.time.Instant;
 import java.util.logging.Logger;

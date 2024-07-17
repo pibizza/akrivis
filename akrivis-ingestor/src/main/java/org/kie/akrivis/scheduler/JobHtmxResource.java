@@ -4,11 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.quarkus.panache.common.Sort;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.inject.Inject;
-import jakarta.json.JsonObject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -22,10 +20,15 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import io.quarkus.qute.CheckedTemplate;
+import org.akrivis.dbmodel.Job;
+import org.akrivis.dbmodel.JobRepository;
+import org.akrivis.dbmodel.JobStatus;
+import org.akrivis.dbmodel.RawData;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Path("/jobh")
@@ -39,6 +42,9 @@ public class JobHtmxResource {
 
     @Inject
     JobExecutor jobExecutor;
+
+    @Inject
+    JobScheduler jobScheduler;
 
     public record JobResponse(Long id, String endpoint, String type, String cron, JobStatus status, Instant lastRun) {
         public JobResponse(Job job) {
@@ -77,7 +83,7 @@ public class JobHtmxResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/test")
-    public Response test(@PathParam("id") Long jobId) throws JsonProcessingException {
+        public Response test(@PathParam("id") Long jobId) throws JsonProcessingException {
 
         Job job = jobRepository.findById(jobId);
         RawData run = jobExecutor.run(job.id, IngestorHttpClient.findHttpClient(job.type));
@@ -85,6 +91,20 @@ public class JobHtmxResource {
         return Response.ok(findRawData(jobId)).build();
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}/activate")
+    @Transactional
+    public Response activate(@PathParam("id") Long jobId) throws JsonProcessingException {
+
+        Job job = jobRepository.findById(jobId);
+        job.status = JobStatus.SCHEDULED;
+        jobRepository.persist(job);
+
+        jobScheduler.addJob(job);
+
+        return Response.ok(allJobs()).build();
+    }
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")

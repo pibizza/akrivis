@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.quarkus.panache.common.Sort;
 import jakarta.inject.Inject;
-import jakarta.json.JsonObject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -18,6 +17,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import org.kie.akrivis.utility.BackstageResponse;
 
 import java.time.Instant;
 import java.util.List;
@@ -67,12 +67,12 @@ public class JobResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/test")
-    public RawDataDetailDTO test(@PathParam("id") Long jobId) throws JsonProcessingException {
+    public BackstageResponse<RawDataDetailDTO> test(@PathParam("id") Long jobId) throws JsonProcessingException {
 
         Job job = jobRepository.findById(jobId);
         RawData run = jobExecutor.run(job.id, IngestorHttpClient.findHttpClient(job.type));
 
-        return new RawDataDetailDTO(run);
+        return new BackstageResponse<>(new RawDataDetailDTO(run));
     }
 
     @DELETE
@@ -100,8 +100,12 @@ public class JobResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<JobResponse> all() throws JsonProcessingException {
-        return jobRepository.findAll(Sort.ascending("id")).stream().map(JobResponse::new).toList();
+    public BackstageResponse<List<JobResponse>> all() throws JsonProcessingException {
+        return new BackstageResponse<>(
+                jobRepository.findAll(Sort.ascending("id"))
+                            .stream()
+                            .map(JobResponse::new)
+                            .toList());
     }
 
     public record RawDataDTO(Long id, Instant createdAt) {
@@ -113,8 +117,10 @@ public class JobResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/data")
-    public List<RawDataDTO> rawData(@PathParam("id") Long jobId) throws JsonProcessingException {
-        return jobRepository.findRawDataByJobId(jobId).stream().map(RawDataDTO::new).toList();
+    public BackstageResponse<List<RawDataDTO>> rawData(@PathParam("id") Long jobId) throws JsonProcessingException {
+        return new BackstageResponse<>(jobRepository.findRawDataByJobId(jobId)
+                            .stream()
+                            .map(RawDataDTO::new).toList());
     }
 
     public record RawDataDetailDTO(Long id, Instant createdAt, JsonNode data) {
@@ -138,6 +144,7 @@ public class JobResource {
     public Response rawData(@PathParam("id") Long jobId, @PathParam("dataId") Long dataId) throws JsonProcessingException {
         return jobRepository.findRawDataById(jobId, dataId)
                             .map(RawDataDetailDTO::new)
+                            .map(BackstageResponse::new)
                             .map(Response::ok)
                             .orElse(Response.status(Status.NO_CONTENT)).build();
     }

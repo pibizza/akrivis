@@ -30,7 +30,7 @@ public class Scorecards {
     @GET
     @Path("/run")
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<Record> run() throws IOException {
-        return runner.run();
+    public BackstageResponse<Collection<Record>> run() throws IOException {
+        return new BackstageResponse<>(runner.run());
     }
 }

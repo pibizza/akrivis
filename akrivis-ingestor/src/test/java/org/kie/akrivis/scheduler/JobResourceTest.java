@@ -59,12 +59,13 @@ class JobResourceTest {
                 .then()
                 .statusCode(200)
                 .body(SameJSONAs.sameJSONAs("""
-                                                    {
+                                                    {"results":{
                                                                                       "data": [
                                                                                         {
                                                                                           "title": "Found a bug"
                                                                                         }
                                                                                       ]
+                                                                                    }
                                                                                     }
                                                     """).allowingExtraUnexpectedFields());
     }

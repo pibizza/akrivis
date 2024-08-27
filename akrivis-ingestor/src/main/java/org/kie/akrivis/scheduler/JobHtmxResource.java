@@ -103,7 +103,7 @@ public class JobHtmxResource {
 
         jobScheduler.addJob(job);
 
-        return Response.ok(allJobs()).build();
+        return Response.ok(jobId).build();
     }
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)

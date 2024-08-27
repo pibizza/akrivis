@@ -43,10 +43,14 @@ create table threshold
 
 create table run_result
 (
-    id      serial primary key,
-    value   integer not null,
-    run_time timestamp not null default now(),
-    card_id serial  not null,
+    id                 serial primary key,
+    status             varchar(255) not null,
+    measure_name       varchar(255) not null,
+    measure_value      integer not null,
+    run_time           timestamp not null default now(),
+    card_data          jsonb     not null,
+    configuration_data jsonb     not null,
+    card_id            serial  not null,
     foreign key (card_id) references card (id)
 );
 

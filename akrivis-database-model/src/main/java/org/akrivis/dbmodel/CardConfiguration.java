@@ -8,7 +8,6 @@ import org.hibernate.annotations.ColumnTransformer;
 @Table(name = "card_configuration")
 public class CardConfiguration {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "card_id_seq")
     @SequenceGenerator(name = "card_id_seq", sequenceName = "card_id_seq", allocationSize = 1)

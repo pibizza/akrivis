@@ -2,6 +2,8 @@ package org.kie.akrivis.quarkus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.akrivis.dbmodel.result.Configuration;
+import org.akrivis.dbmodel.result.Output;
 import org.kie.yard.api.model.Input;
 
 import java.util.*;
@@ -50,14 +52,14 @@ public class InputLoader {
     private Optional<Object> find(final Input input,
                                   final Configuration configuration) {
 
-        for (Output output : configuration.outputs()) {
-            if (Objects.equals(input.getName(), output.name())) {
-                final Optional<String> s = get(configuration.api());
+        for (Output output : configuration.outputs) {
+            if (Objects.equals(input.getName(), output.name)) {
+                final Optional<String> s = get(configuration.api);
 
                 if (s.isPresent()) {
                     try {
                         final Map map = new ObjectMapper().readValue(s.get(), Map.class);
-                        return Optional.of(map.get(output.from()));
+                        return Optional.of(map.get(output.from));
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }

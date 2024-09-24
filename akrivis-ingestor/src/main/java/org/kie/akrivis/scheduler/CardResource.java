@@ -85,15 +85,8 @@ public class CardResource {
     @GET
     @Path("{id}/history")
     public BackstageResponse<List<Result>> history(@PathParam("id") Long cardId) {
-        final List<Result> list = resultRepository.history(cardId).stream().map(runResult ->
-                {
-                    try {
-                        return formResult(runResult);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e); // TODO manage better
-                    }
-                }
-        ).toList();
+        final List<Result> list = resultRepository.history(cardId).stream()
+                .map(this::formResult).toList();
 
         return new BackstageResponse<>(list);
     }
@@ -104,29 +97,28 @@ public class CardResource {
         final List<Result> results = new ArrayList<>();
         final List<Card> cards = cardRepository.findAll().stream().toList();
 
-        cards.forEach(card -> {
-                    final RunResult runResult = resultRepository.latest(card.id);
-                    try {
-                        results.add(formResult(runResult));
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e); // TODO manage better
-                    }
-                }
+        cards.forEach(card ->
+                resultRepository.latest(card.id).map(runResult ->
+                        results.add(formResult(runResult)))
         );
         return new BackstageResponse<>(results);
     }
 
-    private Result formResult(final RunResult runResult) throws JsonProcessingException {
-        return new Result(
-                runResult.card.id,
-                runResult.runTime.getEpochSecond(),
-                runResult.status,
-                runResult.measureValue,
-                runResult.measureName,
-                runResult.maxValue,
-                jsonToYaml(runResult.cardData),
-                getThresholds(runResult)
+    private Result formResult(final RunResult runResult) {
+        try {
+            return new Result(
+                    runResult.card.id,
+                    runResult.runTime.getEpochSecond(),
+                    runResult.status,
+                    runResult.measureValue,
+                    runResult.measureName,
+                    runResult.maxValue,
+                    jsonToYaml(runResult.cardData),
+                    getThresholds(runResult)
             );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String jsonToYaml(String json) throws JsonProcessingException {

@@ -1,0 +1,11 @@
+name: Jira
+api: http://localhost:8081/jira/example3
+outputs:
+  - name: Number of Jira Issues
+    from: total
+max value: 100
+thresholds:
+  - name: Poor
+    limit: 30
+  - name: Ok
+    limit: 50

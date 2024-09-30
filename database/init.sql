@@ -32,21 +32,16 @@ create table card
     foreign key (configuration_id) references card_configuration (id)
 );
 
-create table threshold
-(
-    id        serial primary key,
-    name      varchar(255) not null,
-    value     integer not null,
-    card_id   serial not null,
-    foreign key (card_id) references card (id)
-);
-
 create table run_result
 (
-    id      serial primary key,
-    value   integer not null,
-    run_time timestamp not null default now(),
-    card_id serial  not null,
+    id                 serial primary key,
+    status             varchar(255) not null,
+    measure_name       varchar(255) not null,
+    measure_value      integer not null,
+    run_time           timestamp not null default now(),
+    card_data          jsonb     not null,
+    configuration_data jsonb     not null,
+    card_id            serial  not null,
     foreign key (card_id) references card (id)
 );
 

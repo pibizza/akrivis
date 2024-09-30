@@ -5,6 +5,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import java.util.Random;
+
 @Path("/jira")
 public class JiraResource {
 
@@ -17,7 +19,11 @@ public class JiraResource {
                   "expand": "names,schema",
                   "startAt": 0,
                   "maxResults": 50,
-                  "total": 0,
+               """
+                +
+                " \"total\":" + new Random().nextInt(100) + ","
+                +
+                """
                   "issues": [
                     {
                       "expand": "",
@@ -59,7 +65,11 @@ public class JiraResource {
                   "expand": "names,schema",
                   "startAt": 0,
                   "maxResults": 50,
-                  "total": 0,
+                  """
+                +
+                " \"total\":" + new Random().nextInt(100) + ","
+                +
+                  """
                   "issues": [
                     {
                       "expand": "",

@@ -49,7 +49,7 @@ class SchedulerRepositoryTest {
 
         assertThat(jobRepository.findRawDataByJobId(job1.id), hasSize(2));
 
-        jobRepository.deleteJobRawData(job1.id);
+        jobRepository.delete(job1.id);
 
         assertThat(jobRepository.findRawDataByJobId(job1.id), hasSize(0));
     }

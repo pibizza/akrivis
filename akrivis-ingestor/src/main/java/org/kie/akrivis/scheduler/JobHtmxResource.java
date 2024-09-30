@@ -103,14 +103,14 @@ public class JobHtmxResource {
 
         jobScheduler.addJob(job);
 
-        return Response.ok(allJobs()).build();
+        return Response.ok(jobId).build();
     }
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @Transactional
     public Response delete(@PathParam("id") Long jobId) throws JsonProcessingException {
-        jobRepository.deleteJobRawData(jobId);
+        jobRepository.delete(jobId);
         LOG.info("Job Deleted: " + jobId);
         return Response.ok(allJobs()).build();
     }

@@ -48,10 +48,10 @@ public class JobRepository implements PanacheRepository<Job> {
         }
     }
 
-    public void deleteJobRawData(Long jobId) {
+    public void delete(Long jobId) {
         getEntityManager().createQuery("delete from RawData r where job.id = :jobId")
                           .setParameter("jobId", jobId)
-                          .executeUpdate();
+                .executeUpdate();
         Job job = getEntityManager().getReference(Job.class, jobId);
         getEntityManager().remove(job);
     }

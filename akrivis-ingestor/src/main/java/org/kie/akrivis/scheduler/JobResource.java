@@ -40,6 +40,9 @@ public class JobResource {
     @Inject
     JobExecutor jobExecutor;
 
+    @Inject
+    JobScheduler jobScheduler;
+
     public record JobResponse(Long id, String endpoint, String type, String cron, JobStatus status, Instant lastRun) {
         public JobResponse(Job job) {
             this(job.id, job.endpoint, job.type, job.cron, job.status, job.lastRun);
@@ -79,12 +82,27 @@ public class JobResource {
         return new BackstageResponse<>(new RawDataDetailDTO(run));
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}/activate")
+    @Transactional
+    public Response activate(@PathParam("id") Long jobId) throws JsonProcessingException {
+
+        Job job = jobRepository.findById(jobId);
+        job.status = JobStatus.SCHEDULED;
+        jobRepository.persist(job);
+
+        jobScheduler.addJob(job);
+
+        return Response.ok(jobId).build();
+    }
+
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @Transactional
     public Response delete(@PathParam("id") Long jobId) throws JsonProcessingException {
-        jobRepository.deleteJobRawData(jobId);
+        jobRepository.delete(jobId);
         LOG.info("Job Deleted: " + jobId);
         return Response.noContent().build();
     }

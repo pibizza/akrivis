@@ -1,4 +1,4 @@
-package org.kie.akrivis.github;
+package org.kie.akrivis.clients;
 
 import com.jcabi.github.Issue;
 import com.jcabi.github.Issues;

@@ -1,8 +1,8 @@
 package org.kie.akrivis.scheduler;
 
-import org.kie.akrivis.github.DefaultClientImpl;
-import org.kie.akrivis.github.GitHubClientImpl;
-import org.kie.akrivis.github.MockGithubClientImpl;
+import org.kie.akrivis.clients.DefaultClientImpl;
+import org.kie.akrivis.clients.GitHubClientImpl;
+import org.kie.akrivis.clients.MockGithubClientImpl;
 
 @FunctionalInterface
 public interface IngestorHttpClient {

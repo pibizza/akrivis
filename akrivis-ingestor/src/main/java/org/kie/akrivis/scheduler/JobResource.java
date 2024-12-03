@@ -7,13 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import io.quarkus.panache.common.Sort;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -76,10 +70,16 @@ public class JobResource {
     @Path("{id}/test")
     public BackstageResponse<RawDataDetailDTO> test(@PathParam("id") Long jobId) throws JsonProcessingException {
 
-        Job job = jobRepository.findById(jobId);
-        RawData run = jobExecutor.run(job.id, IngestorHttpClient.findHttpClient(job.type));
+        final Job job = jobRepository.findById(jobId);
+        final IngestorHttpClient client = IngestorHttpClient.findHttpClient(job.type);
+        final String data = client.fetchData(job.endpoint);
+        final RawData rawData = new RawData();
+        rawData.data = data;
+        rawData.job = job;
+        rawData.createdAt = Instant.now();
 
-        return new BackstageResponse<>(new RawDataDetailDTO(run));
+
+        return new BackstageResponse<>(new RawDataDetailDTO(rawData));
     }
 
     @POST
@@ -113,7 +113,7 @@ public class JobResource {
     public Response find(@PathParam("id") Long jobId) throws JsonProcessingException {
 
         Optional<Job> job = jobRepository.findByIdOptional(jobId);
-        if(job.isEmpty()) {
+        if (job.isEmpty()) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
@@ -125,9 +125,9 @@ public class JobResource {
     public BackstageResponse<List<JobResponse>> all() throws JsonProcessingException {
         return new BackstageResponse<>(
                 jobRepository.findAll(Sort.ascending("id"))
-                            .stream()
-                            .map(JobResponse::new)
-                            .toList());
+                        .stream()
+                        .map(JobResponse::new)
+                        .toList());
     }
 
     public record RawDataDTO(Long id, Instant createdAt) {
@@ -141,8 +141,8 @@ public class JobResource {
     @Path("{id}/data")
     public BackstageResponse<List<RawDataDTO>> rawData(@PathParam("id") Long jobId) throws JsonProcessingException {
         return new BackstageResponse<>(jobRepository.findRawDataByJobId(jobId)
-                            .stream()
-                            .map(RawDataDTO::new).toList());
+                .stream()
+                .map(RawDataDTO::new).toList());
     }
 
     public record RawDataDetailDTO(Long id, Instant createdAt, JsonNode data) {
@@ -165,9 +165,9 @@ public class JobResource {
     @Path("{id}/data/{dataId}")
     public Response rawData(@PathParam("id") Long jobId, @PathParam("dataId") Long dataId) throws JsonProcessingException {
         return jobRepository.findRawDataById(jobId, dataId)
-                            .map(RawDataDetailDTO::new)
-                            .map(BackstageResponse::new)
-                            .map(Response::ok)
-                            .orElse(Response.status(Status.NO_CONTENT)).build();
+                .map(RawDataDetailDTO::new)
+                .map(BackstageResponse::new)
+                .map(Response::ok)
+                .orElse(Response.status(Status.NO_CONTENT)).build();
     }
 }

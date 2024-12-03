@@ -17,9 +17,11 @@ import org.kie.yard.api.model.YaRD_JsonMapperImpl;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @ApplicationScoped
 public class Processor {
@@ -30,6 +32,9 @@ public class Processor {
 
     @Inject
     CardRepository cardRepository;
+
+    @Inject
+    ResultRepository resultRepository;
 
     @ConfigProperty(name = "akrivis.evaluator.address")
     String service;
@@ -64,36 +69,47 @@ public class Processor {
     }
 
     private List<Request> getRequests() {
-        final Payloads payloads = getPayloads();
-        return cardRepository.findAll().stream().map(card -> {
+        final List<Request> result = new ArrayList<>();
+
+        cardRepository.findAll().stream().forEach(card -> {
             try {
                 final Map<String, Object> maps = new HashMap();
                 final ObjectMapper objectMapper = new ObjectMapper();
-                final String confJSON = card.configuration.definition;
-                final Configuration configuration = objectMapper.readValue(confJSON, Configuration.class);
-                final InputLoader inputLoader = new InputLoader(payloads);
+                final Configuration configuration = objectMapper.readValue(card.configuration.definition, Configuration.class);
+        
+                final Optional<RawData> rawData = jobRepository.findLatestRawDataByEndPoint(configuration.api);
 
-                final YaRD model = new YaRD_JsonMapperImpl().fromJSON(card.definition);
-                final Map<String, Object> input = inputLoader.resolve(configuration, model.getInputs());
-                maps.put("yard", objectMapper.readValue(card.definition, Map.class));
-                maps.put("input", input);
+                if(rawData.isPresent()){
+                    final Optional<RunResult> latestResult = resultRepository.latest(card.id);
 
-                return new Request(card, model, maps);
+                    if(!latestResult.isPresent() || latestResult.get().runTime.isBefore(rawData.get().createdAt)){
+
+                        final Payloads payloads = getPayloads(rawData.get());
+                        final InputLoader inputLoader = new InputLoader(payloads);
+
+                        final YaRD model = new YaRD_JsonMapperImpl().fromJSON(card.definition);
+                        final Map<String, Object> input = inputLoader.resolve(configuration, model.getInputs());
+                        maps.put("yard", objectMapper.readValue(card.definition, Map.class));
+                        maps.put("input", input);
+
+                       result.add(new Request(card, model, maps));
+                    }
+                }
             } catch (NotFoundException | IOException e) {
                 throw new RuntimeException(e);
             }
-        }).toList();
+        });
+        return result;
     }
 
-    private Payloads getPayloads() {
+    private Payloads getPayloads(final RawData rawData) {
         final Payloads payloads = new Payloads();
-        for (Job job : jobRepository.findActiveJobs()) {
-            final RawData latestRawDataByJobId = jobRepository.findLatestRawDataByJobId(job.id);
-            payloads.getPayloads().add(new Payload(job.endpoint, latestRawDataByJobId.data));
-        }
+
+        payloads.getPayloads().add(new Payload(rawData.job.endpoint, rawData.data));
+
         return payloads;
     }
 
-    private record Request(Card card, YaRD yardModel,  Map<String, Object> json) {
+    private record Request(Card card, YaRD yardModel, Map<String, Object> json) {
     }
 }

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scorecard-db
+  labels:
+    app-component: scorecard-db
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app-component: scorecard-db
+  template:
+    metadata:
+      labels:
+        app-component: scorecard-db
+    spec:
+      containers:
+        - name: postgres
+          image: quay.io/fedora/postgresql-15:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: scorecard-db-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: scorecard-db
+      volumes:
+        - name: scorecard-db
+          persistentVolumeClaim:
+            claimName: scorecard-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scorecard-db
+spec:
+  ports:
+    - name: mytcp
+      protocol: TCP
+      port: 5432
+  selector:
+    app-component: scorecard-db

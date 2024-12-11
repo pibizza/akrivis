@@ -1,0 +1,180 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    app.quarkus.io/quarkus-version: 3.17.6
+    app.quarkus.io/commit-id: 761ecaa46225818f62f763946695d99e48354ff4
+    app.quarkus.io/vcs-uri: https://github.com/lucamolteni/akrivis.git
+    app.quarkus.io/build-timestamp: 2025-01-17 - 10:11:12 +0000
+  labels:
+    app.kubernetes.io/name: akrivis-ingestor
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/managed-by: quarkus
+  name: akrivis-ingestor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/name: akrivis-ingestor
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  name: view-jobs
+rules:
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: akrivis-ingestor
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  name: akrivis-ingestor-view-jobs
+roleRef:
+  kind: Role
+  apiGroup: rbac.authorization.k8s.io
+  name: view-jobs
+subjects:
+  - kind: ServiceAccount
+    apiGroup: ""
+    name: akrivis-ingestor
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.quarkus.io/quarkus-version: 3.17.6
+    app.quarkus.io/commit-id: 761ecaa46225818f62f763946695d99e48354ff4
+    app.quarkus.io/vcs-uri: https://github.com/lucamolteni/akrivis.git
+    app.quarkus.io/build-timestamp: 2025-01-17 - 10:11:12 +0000
+  labels:
+    app.kubernetes.io/name: akrivis-ingestor
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/managed-by: quarkus
+  name: akrivis-ingestor
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8083
+  selector:
+    app.kubernetes.io/name: akrivis-ingestor
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.quarkus.io/quarkus-version: 3.17.6
+    app.quarkus.io/commit-id: 761ecaa46225818f62f763946695d99e48354ff4
+    app.quarkus.io/vcs-uri: https://github.com/lucamolteni/akrivis.git
+    app.quarkus.io/build-timestamp: 2025-01-17 - 10:11:12 +0000
+  labels:
+    app.kubernetes.io/name: akrivis-ingestor
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/managed-by: quarkus
+  name: akrivis-ingestor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/version: 1.0.0-SNAPSHOT
+      app.kubernetes.io/name: akrivis-ingestor
+  template:
+    metadata:
+      annotations:
+        app.quarkus.io/quarkus-version: 3.17.6
+        app.quarkus.io/commit-id: 761ecaa46225818f62f763946695d99e48354ff4
+        app.quarkus.io/vcs-uri: https://github.com/lucamolteni/akrivis.git
+        app.quarkus.io/build-timestamp: 2025-01-17 - 10:11:12 +0000
+      labels:
+        app.kubernetes.io/managed-by: quarkus
+        app.kubernetes.io/version: 1.0.0-SNAPSHOT
+        app.kubernetes.io/name: akrivis-ingestor
+    spec:
+      containers:
+        - env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: QUARKUS_FLYWAY_ACTIVE
+              value: "false"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: DB_USERNAME
+                  name: scorecards-secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: DB_PASSWORD
+                  name: scorecards-secret
+            - name: DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  key: DB_CONNECTION_STRING
+                  name: scorecards-secret
+          envFrom:
+            - secretRef:
+                name: scorecards-secret
+          image: quay.io/lmolteni/akrivis-ingestor:latest
+          imagePullPolicy: Always
+          name: akrivis-ingestor
+          ports:
+            - containerPort: 8083
+              name: http
+              protocol: TCP
+      initContainers:
+        - args:
+            - job
+            - akrivis-ingestor-flyway-init
+          image: ghcr.io/groundnuty/k8s-wait-for:no-root-v1.7
+          imagePullPolicy: IfNotPresent
+          name: wait-for-flyway
+      serviceAccountName: akrivis-ingestor
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: akrivis-ingestor-flyway-init
+spec:
+  completionMode: NonIndexed
+  template:
+    metadata: {}
+    spec:
+      containers:
+        - env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: DB_USERNAME
+                  name: scorecards-secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: DB_PASSWORD
+                  name: scorecards-secret
+            - name: DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  key: DB_CONNECTION_STRING
+                  name: scorecards-secret
+            - name: QUARKUS_INIT_AND_EXIT
+              value: "true"
+            - name: QUARKUS_FLYWAY_ACTIVE
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: scorecards-secret
+          image: quay.io/lmolteni/akrivis-ingestor:latest
+          name: akrivis-ingestor-flyway-init
+      restartPolicy: OnFailure
+      serviceAccountName: akrivis-ingestor

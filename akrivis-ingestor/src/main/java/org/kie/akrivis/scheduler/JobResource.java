@@ -70,7 +70,9 @@ public class JobResource {
     @Path("{id}/test")
     public BackstageResponse<RawDataDetailDTO> test(@PathParam("id") Long jobId) throws JsonProcessingException {
 
+
         final Job job = jobRepository.findById(jobId);
+        LOG.info("Testing job: calling" + jobId);
         final IngestorHttpClient client = IngestorHttpClient.findHttpClient(job.type);
         final String data = client.fetchData(job.endpoint);
         final RawData rawData = new RawData();
@@ -151,6 +153,10 @@ public class JobResource {
         }
 
         private static JsonNode createJsonObject(String data) {
+            if("".equals(data) || data == null) {
+                return new ObjectMapper().createObjectNode();
+            }
+
             ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
             try {
                 return objectMapper.readValue(data, JsonNode.class);

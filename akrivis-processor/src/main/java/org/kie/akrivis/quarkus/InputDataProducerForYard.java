@@ -8,19 +8,19 @@ import org.kie.yard.api.model.YaRD;
 
 import java.util.*;
 
-public class Inputs {
+public class InputDataProducerForYard {
 
     private static final String STREAM = "stream";
 
     private JobRepository jobRepository;
 
-    public Inputs(JobRepository jobRepository) {
+    public InputDataProducerForYard(JobRepository jobRepository) {
         this.jobRepository = jobRepository;
     }
 
-    public Map<String, Object> formInput(final RawData rawData,
-                                         final Configuration configuration,
-                                         final YaRD model) throws NotFoundException {
+    public Map<String, Object> formInputData(final RawData rawData,
+                                             final Configuration configuration,
+                                             final YaRD model) throws NotFoundException {
 
         final Optional<Integer> sampling = getSampling(configuration);
 

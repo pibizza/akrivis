@@ -90,10 +90,10 @@ public class Processor {
                     if (!latestResult.isPresent() || latestResult.get().runTime.isBefore(rawData.get().createdAt)) {
 
                         final YaRD model = new YaRD_JsonMapperImpl().fromJSON(card.definition);
-                        final Map<String, Object> input = new Inputs(jobRepository).formInput(rawData.get(), configuration, model);
+                        final Map<String, Object> yardInputs = new InputDataProducerForYard(jobRepository).formInputData(rawData.get(), configuration, model);
 
                         maps.put("yard", objectMapper.readValue(card.definition, Map.class));
-                        maps.put("input", input);
+                        maps.put("input", yardInputs);
 
                         result.add(new Request(card, model, maps));
                     }

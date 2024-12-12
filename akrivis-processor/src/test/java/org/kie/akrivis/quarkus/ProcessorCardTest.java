@@ -28,7 +28,7 @@ class ProcessorCardTest extends ProcessorTestBase {
         processor.scores();
 
         final Map<String, Object> payload = yardServiceMock.getPayload();
-        assertPayload(payload);
+        assertPayloadContentIsValid(payload);
         assertInputContainsKeys(payload, "Number of Jira Issues");
 
         assertEquals(1, resultRepository.history(cardId).size());

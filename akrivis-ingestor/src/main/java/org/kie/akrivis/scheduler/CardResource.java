@@ -86,13 +86,7 @@ public class CardResource {
     @Path("{id}/history")
     public BackstageResponse<List<Result>> history(@PathParam("id") Long cardId) {
         final List<Result> list = resultRepository.history(cardId).stream()
-                .map(runResult -> {
-                    try {
-                        return formResult(runResult);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
-                }).toList();
+                .map(this::formResult).toList();
 
         return new BackstageResponse<>(list);
     }
@@ -104,32 +98,28 @@ public class CardResource {
         final List<Card> cards = cardRepository.findAll().stream().toList();
 
         cards.forEach(card -> {
-                    resultRepository.latest(card.id).map(runResult ->
-                    {
-                        try {
-                            return results.add(formResult(runResult));
-                        } catch (JsonProcessingException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    });
+                    resultRepository.latest(card.id)
+                            .map(runResult -> results.add(formResult(runResult)));
                 }
         );
         return new BackstageResponse<>(results);
     }
 
-    private Result formResult(final RunResult runResult) throws JsonProcessingException {
-        final ObjectMapper objectMapper = new ObjectMapper();
-
-        return new Result(
-                runResult.card.id,
-                runResult.runTime.getEpochSecond(),
-                runResult.status,
-                objectMapper.readValue(runResult.measureValue, Map.class),
-                runResult.measureName,
-                runResult.maxValue,
-                jsonToYaml(runResult.cardData),
-                getThresholds(runResult)
+    private Result formResult(final RunResult runResult) {
+        try {
+            return new Result(
+                    runResult.card.id,
+                    runResult.runTime.getEpochSecond(),
+                    runResult.status,
+                    new ObjectMapper().readValue(runResult.measureValue, Map.class),
+                    runResult.measureName,
+                    runResult.maxValue,
+                    jsonToYaml(runResult.cardData),
+                    getThresholds(runResult)
             );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String jsonToYaml(String json) throws JsonProcessingException {

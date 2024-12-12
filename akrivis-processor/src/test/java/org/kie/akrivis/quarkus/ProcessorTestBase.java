@@ -75,7 +75,7 @@ public class ProcessorTestBase {
         cardRepository.persist(card);
     }
 
-    public void assertPayload(Map<String, Object> payload) {
+    public void assertPayloadContentIsValid(final Map<String, Object> payload) {
         assertTrue(payload.containsKey("yard"));
         assertTrue(payload.containsKey("input"));
         assertEquals(2, payload.keySet().size());

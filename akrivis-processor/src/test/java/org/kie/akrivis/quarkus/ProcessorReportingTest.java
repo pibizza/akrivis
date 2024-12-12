@@ -30,7 +30,7 @@ class ProcessorReportingTest extends ProcessorTestBase {
         processor.scores();
 
         final Map<String, Object> payload = yardServiceMock.getPayload();
-        assertPayload(payload);
+        assertPayloadContentIsValid(payload);
         assertInputContainsKeys(payload, "Number of Jira Issues");
         assertTrue(((Map) payload.get("input")).get("Number of Jira Issues") instanceof Collection);
 

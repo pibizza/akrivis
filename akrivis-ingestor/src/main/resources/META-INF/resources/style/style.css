@@ -1,0 +1,15 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  display: flex;
+}
+
+#jobTable, #detailRawData {
+  flex: 1;
+}
+
+#detailRawDataContent {
+  white-space: pre-wrap;
+}

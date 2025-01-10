@@ -1,47 +1,35 @@
-# Akrivis Scorecards
+# Akrivis Scorecards and Reporting
+This is Akrivis project that is used to produce reporting data for the Akrivis Backstage plugin.
+Akrivis consists of the following components:
 
-### Run the example: Compile
+* Akrivis Backstage plugin 
+  * Provides UI controls and visualization frontend
+  * Not stored in this repository
+* [Ingestor](akrivis-ingestor/README.md)
+  * Responsible for fetching data from given data sources
+  * Provides a REST API for fetching reporting data and creating Akrivis assets
+* [Processor](akrivis-processor/README.md)
+  * Responsible for activating the Cards reactively based on Data changes
+* [Evaluator](akrivis-evaluator/README.md)
+  * Used by Processor to run the Yard files with a given data.
+* [Postgres Database](database/README.md)
+  * Database when resulting reporting data, jobs and cards are stored.
+* [Quarkus REST service for testing](examples/rest-service-mock/README.md)
+  * Something the help the development environment to run. Few mocked services.
 
-* Compile the yard repository with **mvn clean install**
-  * https://github.com/kiegroup/yard
-* Compile this project **mvn clean install**
+## Components:
+### Card
+Card is used to form a result based on given data. The data comes from a Data source.
+Card contains the calculation needed to process the given data to a desired format for the visual presentation.
+#### Card configuration 
+Specifies how the card is visualised. For example what are the max-min values, 
+are there thresholds and what the x and y-axis are called.
 
-### Setting up the database
-You need to have Docker or Podman running for the database.
-* Either start it with a simple command line command:
-  * **docker run -it --rm=true --name quarkus_test -e POSTGRES_USER=sarah -e POSTGRES_PASSWORD=connor -e POSTGRES_DB=quarkus_test -p 5432:5432 postgres:13.3**
-* Or use with docker compose
-  * Inside folder **database**
-  * Run **docker compose up**
-  * Starting with compose also adds adminer. You can access it from localhost:8085
+### Data source
+Data source defines the REST e
 
-### Alternative 1: Run what you need
-* Start the *akrivis-processor*
-  * **mvn compile quarkus:dev**
-* Use a different port or the quarkus runtimes will collide. The following port selections will make the default example settings work.
-* Start the *rest-service-mock*
-  * **mvn compile quarkus:dev -Dquarkus.port.http=8081**
-* Start the *akrivis-evaluator*
-  * **mvn compile quarkus:dev -Dquarkus.port.http=8082**
-* Start the *akrivis-ingestor*
-  * **mvn compile quarkus:dev -Dquarkus.port.http=8083**
+### Job
 
-### Alternative 2: Start all with tmux
-* Install **tmux** if you do not already have it
-* Run **./start-in-tmux.sh**
-
-# Usage
-## Akrivis Evaluator
-#### Configuration
-* The *akrivis-processor* looks for the scorecard files from a folder
-  defined with the property **akrivis.scorecards.folder**. By default the dev
-  environment uses files located in *examples/example-files/jira*
-* 
-REST API provides two end points.
-* **/scorecards/list*
-  * Lists the scorecards
-* **/scorecards/run*
-  * Runs the scorecards
-
-
+## Contributing
+* [How to test and contribute](CONTRIBUTE.md)
 

@@ -10,7 +10,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.kie.akrivis</groupId>
+    <groupId>org.kubesmarts.akrivis</groupId>
     <artifactId>akrivis-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -34,15 +34,15 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/kiegroup/akrivis.git</connection>
-        <developerConnection>scm:git:git@github.com:kiegroup/akrivis.git</developerConnection>
-        <url>https://github.com/kiegroup/akrivis</url>
+        <connection>scm:git:https://github.com/kubesmarts/akrivis.git</connection>
+        <developerConnection>scm:git:git@github.com:kubesmarts/akrivis.git</developerConnection>
+        <url>https://github.com/kubesmarts/akrivis</url>
     </scm>
 
     <developers>
         <developer>
             <name>All developers are listed in the KIE GitHub organization</name>
-            <url>https://github.com/orgs/kiegroup/people</url>
+            <url>https://github.com/orgs/kubesmarts/people</url>
         </developer>
     </developers>
 

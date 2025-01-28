@@ -1,0 +1,18 @@
+specVersion: alpha
+kind: YaRD
+name: 'Project Statistics'
+inputs:
+  - name: Number of Components
+    type: number
+elements:
+  - name: Result
+    type: Decision
+    logic:
+      type: DecisionTable
+      hitPolicy: FIRST
+      inputs: ['Number of Components']
+      outputComponents: ['Score']
+      rules:
+        - ['<=1', 0]
+        - ['<=2', 50]
+        - ['>=3', 100]

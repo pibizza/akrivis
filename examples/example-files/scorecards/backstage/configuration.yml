@@ -1,0 +1,11 @@
+name: Backstage Component Data
+api: /entities/by-query?filter=kind=component
+outputs:
+  - name: Number of Components
+    from: totalItems
+  - name: Data
+    from: akrivis.data
+max value: 100
+thresholds:
+  - name: Good
+    limit: 50

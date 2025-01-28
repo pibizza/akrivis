@@ -31,12 +31,6 @@ public class JobExecutor {
         final Optional<RawData> latest = jobRepository.findLatestRawDataByJobId(jobPersisted.id);
         final String data = client.fetchData(jobPersisted.endpoint);
 
-
-
-
-
-
-
         if (latest.isPresent() && jsonEquals(data, latest.get().data)) {
             jobRepository.persist(jobPersisted);
             return latest.get();

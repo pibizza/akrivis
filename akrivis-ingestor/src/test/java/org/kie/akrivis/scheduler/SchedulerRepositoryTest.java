@@ -1,8 +1,8 @@
 package org.kie.akrivis.scheduler;
 
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.akrivis.dbmodel.Job;
 import org.akrivis.dbmodel.JobRepository;
 import org.akrivis.dbmodel.JobStatus;
@@ -23,7 +23,7 @@ class SchedulerRepositoryTest {
     JobRepository jobRepository;
 
     @Test
-    @Transactional
+    @TestTransaction
     public void testFindActiveJobs() {
         Job job1 = job("endpoint1", "0/5 * * * * ?");
         Job job2 = job("endpoint2", "0/3 * * * * ?");
@@ -35,7 +35,7 @@ class SchedulerRepositoryTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     public void deleteCascade() {
         Job job1 = job("endpoint1", "0/5 * * * * ?");
 
@@ -55,7 +55,7 @@ class SchedulerRepositoryTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     public void findRawDetail() {
         Job job1 = job("endpoint1", "0/5 * * * * ?");
         jobRepository.persist(job1);

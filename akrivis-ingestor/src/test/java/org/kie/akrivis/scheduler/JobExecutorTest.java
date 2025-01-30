@@ -1,8 +1,8 @@
 package org.kie.akrivis.scheduler;
 
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.akrivis.dbmodel.Job;
 import org.akrivis.dbmodel.JobRepository;
 import org.akrivis.dbmodel.RawData;
@@ -44,7 +44,7 @@ class JobExecutorTest {
     }
 
     @Test
-    @Transactional
+    @TestTransaction
     public void testSaveOnlyDataChange() {
         long jobId = 1L;
         String payload = """

@@ -41,9 +41,10 @@ public class CardResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
     public void add(Map<String, Object> payload) {
+        LOG.info("Creating card: " + payload);
         try {
 
-            final CardConfiguration cardConfiguration = getConfiguration(payload.get("configuration"));
+            final CardConfiguration cardConfiguration = getConfiguration(payload.get("config"));
             final Card card = getCard(payload.get("card"));
             cardRepository.getEntityManager().persist(cardConfiguration);
             card.configuration = cardConfiguration;

@@ -1,0 +1,54 @@
+services:
+  processor:
+    image: kubesmarts/akrivis-processor-jvm
+    container_name: processor
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DB_USERNAME: sarah
+      DB_PASSWORD: connor
+      DB_CONNECTION_STRING: jdbc:postgresql://akrivis_postgres:5432/quarkus_test
+      EVALUATOR_ADDRESS: http://localhost:8082
+
+  evaluator:
+    image: kubesmarts/akrivis-evaluator-jvm
+    container_name: evaluator
+    restart: always
+    ports:
+      - "8082:8080"
+
+  ingestor:
+    image: kubesmarts/akrivis-ingestor-jvm
+    container_name: ingestor
+    restart: always
+    ports:
+      - "8083:8080"
+    environment:
+      DB_USERNAME: sarah
+      DB_PASSWORD: connor
+      DB_CONNECTION_STRING: jdbc:postgresql://akrivis_postgres:5432/quarkus_test
+
+  db:
+    image: postgres
+    container_name: akrivis_postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    user: postgres
+    environment:
+      POSTGRES_DB: quarkus_test
+      POSTGRES_USER: sarah
+      PGUSER: sarah
+      POSTGRES_PASSWORD: connor
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8085:8080
+
+volumes:
+  pgdata:

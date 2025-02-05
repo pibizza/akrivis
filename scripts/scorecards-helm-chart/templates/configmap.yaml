@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scorecards-configmap
+data:
+  EVALUATOR_ADDRESS: "localhost"
+  EVALUATOR_PORT: "8083"

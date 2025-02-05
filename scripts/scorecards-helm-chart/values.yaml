@@ -1,0 +1,172 @@
+global:
+  host: localhost # Specify your own Ingress host
+appName: scorecards
+serviceAccountName: scorecards-sa
+labels:
+  - app: scorecards
+
+# Backstage
+backstage:
+  route:
+    # set to false for kubernetes
+    enabled: false
+  global:
+    host: "scorecards.local"
+    dynamic:
+      includes:
+        - dynamic-plugins.default.yaml
+      plugins:
+        - disabled: false
+          package: "@lucamolteni/backstage-plugin-rules-dynamic@0.1.4"
+          integrity: sha512-0AoJRtfNUSZV9AxLuWDTDTncU/ziXaIxxNue/zxjvpFUszAt68k/L1lDJRjoJ6LaCb3zwmiG/JA4P1VDOsGteg==
+          pluginConfig:
+            dynamicPlugins:
+              frontend:
+                lucamolteni.backstage-plugin-scorecards:
+                  appIcons:
+                    - importName: RulesIcon
+                      module: RulesPlugin
+                      name: rulesIcon
+                  dynamicRoutes:
+                    - importName: RulesPage
+                      menuItem:
+                        icon: rulesIcon
+                        text: Rules
+                      module: RulesPlugin
+                      path: /rules
+        - disabled: false
+          package: "@lucamolteni/backstage-plugin-rules-backend-dynamic@0.1.2"
+          integrity: sha512-ucapIZ7WAt0PLOlJmMcKgYI0EpiZsV2MLYgL9ThjTIpIdzI/G799f1/ZeWV7nA87i+uBAeY88IIrxKO50HBPLA==
+
+  upstream:
+    # TODO when setting this to false the secret is still referenced in the rhdh
+    # deployment, looks like rhdh-backstage chart doesn't support excluding
+    # the postrgres secret part.
+    postgresql:
+      #enabled: false
+      primary:
+        resources:
+          limits:
+            ephemeral-storage: 2Gi
+    ingress:
+      enabled: true # Use Kubernetes Ingress instead of OpenShift Route
+    backstage:
+      extraVolumes:
+        - name: backstage-locations
+          configMap:
+            name: backstage-locations
+        - name: dynamic-plugins-root
+          ephemeral:
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    # -- Size of the volume that will contain the dynamic plugins. It should be large enough to contain all the plugins.
+                    storage: 1Gi
+        # Volume that will expose the `dynamic-plugins.yaml` file from the `dynamic-plugins` config map.
+        # The `dynamic-plugins` config map is created by the helm chart from the content of the `global.dynamic` field.
+        - name: dynamic-plugins
+          configMap:
+            defaultMode: 420
+            name: '{{ printf "%s-dynamic-plugins" .Release.Name }}'
+            optional: false
+        - name: app-config
+          configMap:
+            defaultMode: 420
+            name: '{{ printf "%s-backstage-app-config" .Release.Name }}'
+            optional: false
+        # Optional volume that allows exposing the `.npmrc` file (through a `dynamic-plugins-npmrc` secret)
+        # to be used when running `npm pack` during the dynamic plugins installation by the initContainer.
+        - name: dynamic-plugins-npmrc
+          secret:
+            defaultMode: 420
+            optional: true
+            secretName: dynamic-plugins-npmrc
+        - name: npmcacache
+          emptyDir: {}
+      extraVolumeMounts:
+        - name: backstage-locations
+          mountPath: /opt/backstage/locations
+        - mountPath: /opt/app-root/src/.npmrc.dynamic-plugins
+          name: dynamic-plugins-npmrc
+        - name: dynamic-plugins-root
+          mountPath: /opt/app-root/src/dynamic-plugins-root
+        - name: app-config
+          readOnly: true
+          mountPath: /opt/app-root/src/default.app-config.yaml
+          subPath: default.app-config.yaml
+        - name: dynamic-plugins
+          readOnly: true
+          mountPath: /opt/app-root/src/dynamic-plugins.yaml
+          subPath: dynamic-plugins.yaml
+      resources:
+        limits:
+          memory: 2Gi
+          cpu: 1000m
+        requests:
+          memory: 800Mi
+          cpu: 200m
+      podSecurityContext: # Vanilla Kubernetes doesn't feature OpenShift default SCCs with dynamic UIDs, adjust accordingly to the deployed image
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      image:
+        # use 1.2 till we get the CI working again and publishing upstream
+        # versions of the orchestrtor and notification plugins
+        repository: rhdh-community/rhdh
+        tag: "next"
+      extraEnvVarsSecrets:
+        - backstage-backend-auth-secret
+      appConfig:
+        app:
+          baseUrl: http://localhost:9090
+        backend:
+          auth:
+            # for backstage < 1.27 we still need this
+            keys:
+              - secret: ${BACKEND_SECRET}
+            externalAccess:
+              - type: static
+                options:
+                  token: ${BACKEND_SECRET}
+                  subject: orchestrator
+          baseUrl: http://localhost:9090
+          cors:
+            origin: http://localhost:9090
+          scorecards:
+            ingestor:
+              url: "http://akrivis-ingestor.default.svc.cluster.local"
+        integrations:
+          github:
+            - host: github.com
+              token: "INSERT VALID TOKEN HERE"
+        auth:
+          environment: development
+          providers:
+            github:
+              development:
+                clientId: ${GH_PROVIDER_CLIENT_ID:-provide_gh_provider_client_id_in_backstage_backend_auth_secret}
+                clientSecret: ${GH_PROVIDER_SECRET:-provide_gh_provider_secret_in_backstage_backend_auth_secret}
+            guest:
+              dangerouslyAllowOutsideDevelopment: true
+              userEntityRef: user:default/guest
+        catalog:
+          rules:
+            - allow: [Component, System, Group, Resource, Location, Template, API, User, Domain]
+          locations:
+            - target: https://github.com/janus-idp/software-templates/blob/main/showcase-templates.yaml
+              type: url
+            - target: /opt/backstage/locations/users.yaml
+              type: file
+            - target: /opt/backstage/locations/workflow-resources.yaml
+              type: file
+          csp:
+            script-src: ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+            script-src-elem: ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+            connect-src: ["'self'", 'http:', 'https:', 'data:']
+        orchestrator:
+          catalog:
+            environment: development
+
